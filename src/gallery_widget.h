@@ -4,11 +4,8 @@
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QListWidget>
 #include <QtWidgets/QLineEdit>
-#include <QtWidgets/QLabel>
-#include "image_scaner.h"
-
-#define MIN_THUMBNAIL_SIZE 150
-#define MAX_THUMBNAIL_SIZE 400
+#include "imagelistview.h"
+#include "imagelistmodel.h"
 
 class GalleryWidget : public QWidget
 {
@@ -18,14 +15,11 @@ public:
 private slots:
     void scroll_value_changed(int value);
     void browse_directory();
-    void found_image(QFileInfo fi);
-    void scaner_finished();
 private:
-    ImageScaner *scaner;
-
     QLineEdit *line_dir_path;
     QPushButton *btn_browse;
     QSlider *m_slider;
-    QListWidget *m_list;
+    ImageListView *m_list;
+    ImageListModel *m_model;
 };
 

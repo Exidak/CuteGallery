@@ -3,18 +3,15 @@
 //
 
 #include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QLabel>
 #include <QtWidgets/QFileDialog>
 #include <QtCore/QCoreApplication>
 #include "gallery_widget.h"
-#include "image_widget.h"
+#include <defines.h>
 
 GalleryWidget::GalleryWidget(QWidget *parent)
     : QWidget(parent)
 {
-    scaner = new ImageScaner;
-    connect(scaner, &ImageScaner::image_found, this, &GalleryWidget::found_image);
-    connect(scaner, &ImageScaner::finished, this, &GalleryWidget::scaner_finished);
-
     line_dir_path = new QLineEdit(this);
     line_dir_path->setReadOnly(true);
 
@@ -27,12 +24,10 @@ GalleryWidget::GalleryWidget(QWidget *parent)
     m_slider->setValue(MIN_THUMBNAIL_SIZE);
     connect(m_slider, &QSlider::valueChanged, this, &GalleryWidget::scroll_value_changed);
 
-    m_list = new QListWidget(this);
-    m_list->setViewMode(QListView::IconMode);
-    //m_list->setIconSize(QSize(200,200));
-    m_list->setResizeMode(QListWidget::Adjust);
-    m_list->setDragEnabled(false);
-    m_list->setGridSize(QSize(MIN_THUMBNAIL_SIZE, MIN_THUMBNAIL_SIZE));
+    m_model = new ImageListModel(this);
+    m_list = new ImageListView(this);
+    m_list->setModel(m_model);
+    //m_list->setThumbnailSize(MIN_THUMBNAIL_SIZE);
 
     auto *mainlt = new QVBoxLayout(this);
     auto *browselt = new QHBoxLayout;
@@ -48,7 +43,7 @@ GalleryWidget::GalleryWidget(QWidget *parent)
 
 void GalleryWidget::scroll_value_changed(int value)
 {
-    m_list->setGridSize(QSize(value,value));
+    m_list->setThumbnailSize(value);
 }
 
 void GalleryWidget::browse_directory()
@@ -56,23 +51,7 @@ void GalleryWidget::browse_directory()
     QString dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"));
     if (!dir.isEmpty())
     {
-        m_list->clear();
-        btn_browse->setEnabled(false);
+        m_model->loadDirectoryImageList(dir);
         line_dir_path->setText(dir);
-        scaner->set_dir(dir);
-        scaner->start();
     }
-}
-
-void GalleryWidget::found_image(QFileInfo fi)
-{
-    ImageWidget::build_listwidget_item(QPixmap(fi.absoluteFilePath()),fi.fileName(), m_list);
-    m_list->update();
-    QCoreApplication::processEvents();
-}
-
-void GalleryWidget::scaner_finished()
-{
-    btn_browse->setEnabled(true);
-    QCoreApplication::processEvents();
 }
